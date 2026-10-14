@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0b0e">
+  <title>BomBetter</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <span class="logo">💣 BomBetter</span>
+    <button id="leave" class="ghost sm hidden" type="button">Leave</button>
+  </header>
+
+  <main id="app">
+    <section id="screen-home" class="screen">
+      <h1>BomBetter</h1>
+      <p class="tag">A bomb. Three players. Each one is missing a sense.</p>
+      <label class="field">Your name <input id="name" maxlength="16" placeholder="Player" autocomplete="nickname"></label>
+      <div class="actions">
+        <button class="btn" id="btn-host" type="button">Host a game</button>
+        <div class="join">
+          <input id="join-code" maxlength="4" placeholder="CODE" autocapitalize="characters" autocomplete="off" aria-label="Room code">
+          <button class="btn" id="btn-join" type="button">Join</button>
+        </div>
+        <button class="btn ghost" id="btn-solo" type="button">Solo test (one device, works offline)</button>
+      </div>
+      <p class="err" id="home-err"></p>
+      <details class="how" open>
+        <summary>📖 How to play</summary>
+
+        <h3>The goal</h3>
+        <p>Defuse every module on the bomb before the timer runs out. Too many wrong moves (strikes) and it explodes. You need <b>3 players</b>, and each one is missing a sense, so you must work together.</p>
+
+        <h3>The 3 roles</h3>
+        <ul class="roles-help">
+          <li><b>🙉 Deaf</b> <em>sees the bomb</em> but hears nothing. Describe what you see to Blind (speak, or type to speak), and chat with Mute in text.</li>
+          <li><b>🤐 Mute</b> <em>has the manual</em> but can only type. Look up what Deaf describes and text back the answer. The manual rules are random every game.</li>
+          <li><b>🙈 Blind</b> <em>touches the bomb</em> but sees only a dark screen with unlabeled pads. Listen to Deaf, then press, cut or hold exactly what you are told.</li>
+        </ul>
+
+        <h3>How a round goes</h3>
+        <ol>
+          <li><b>Deaf</b> looks at a module and tells Mute what it shows, e.g. "3 wires: red, blue, yellow".</li>
+          <li><b>Mute</b> finds that module in the manual and texts the rule, e.g. "cut the second wire".</li>
+          <li><b>Deaf</b> tells <b>Blind</b>: "module 1, cut wire 2".</li>
+          <li><b>Blind</b> switches to that module with ◀ ▶ and does it. Listen for sounds: a good click, a strike buzz, or a "solved" chime.</li>
+        </ol>
+
+        <h3>Tips</h3>
+        <ul>
+          <li>Blind: pads are counted left to right, and the game says the module number aloud when you switch.</li>
+          <li>Mute: press <b>X</b> for the emote wheel to show numbers, yes or no with a big hand.</li>
+          <li>Keep talking. Say which module you mean every time.</li>
+        </ul>
+
+        <h3>Starting</h3>
+        <ul>
+          <li><b>Host a game</b> makes a room. Share the 4-letter code with two friends, then everyone picks a different role.</li>
+          <li><b>Join</b> enters a friend's room code.</li>
+          <li><b>Solo test</b> shows all three roles on one screen so you can learn the game alone.</li>
+        </ul>
+        <p class="hint">The host's browser runs the game, so keep that tab open.</p>
+      </details>
+
+      <details class="how example-help">
+        <summary>🎬 Example gameplay</summary>
+        <p class="hint">Example only. Your manual's rules are random every game, so the answers will differ.</p>
+
+        <h3>Setup</h3>
+        <p>A bomb with 4 modules and a 5:00 timer. Deaf sees the serial number is <b>K7Q3M</b>.</p>
+
+        <h3>Module 1: Wires (a clean solve)</h3>
+        <div class="line deaf"><b>🙉 Deaf → Mute (text):</b> "Module 1, Wires. 3 wires: red, blue, yellow. Serial ends in 3."</div>
+        <div class="line mute"><b>🤐 Mute:</b> opens the "3 wires" section. The first true rule says "If there are no black wires, cut the second wire." Texts: "No black, so cut the second wire."</div>
+        <div class="line deaf"><b>🙉 Deaf → Blind (voice):</b> "Module 1, cut the second wire."</div>
+        <div class="line blind"><b>🙈 Blind:</b> is on module 1 (the game says "Module 1"). Taps the second pad, hears the solved chime and says "Cut. Next module?"</div>
+
+        <h3>Module 2: Keypad (a strike, then recovery)</h3>
+        <div class="line deaf"><b>🙉 Deaf → Mute:</b> "Module 2, Keypad. Symbols: star, heart, skull, anchor. Positions 1 to 4 are star, skull, anchor, heart."</div>
+        <div class="line mute"><b>🤐 Mute:</b> finds the one column with all four. Order top to bottom: anchor, star, heart, skull. Texts: "Anchor, star, heart, skull."</div>
+        <div class="line deaf"><b>🙉 Deaf → Blind:</b> "Module 2. Press 3, then 1, then 4, then 2."</div>
+        <div class="line blind"><b>🙈 Blind:</b> presses 3 (lit, good), then 1 (lit, good), then 2 by mistake. Buzz! A strike ✖.</div>
+        <div class="line deaf"><b>🙉 Deaf:</b> sees the strike counter go up. "Strike. Keys 3 and 1 are done. Next is 4, then 2."</div>
+        <div class="line blind"><b>🙈 Blind:</b> presses 4, then 2. Solved chime.</div>
+
+        <h3>The end</h3>
+        <p>After the other two modules are solved before the timer hits 0:00, everyone sees <b>✅ BOMB DEFUSED</b>. If the timer ends or strikes run out, it is <b>💥 BOOM</b>.</p>
+
+        <h3>Good habits</h3>
+        <ul>
+          <li>Always say the <b>module number</b> first.</li>
+          <li>Blind: say what you pressed after each action ("pressed 3").</li>
+          <li>Deaf: say "strike" out loud so Mute can re-check the manual.</li>
+        </ul>
+      </details>
+
+      <details class="how modules-help">
+        <summary>🧩 Module guide: what each role does</summary>
+        <p class="hint">Tap a module to expand it. The bomb also shows a serial number (S/N), a battery count and indicator lights. Deaf reads these out when the manual asks for them.</p>
+
+        <details>
+          <summary>✂️ Wires</summary>
+          <ul>
+            <li><b>🙉 Deaf:</b> count the wires and read their colors from top to bottom. Also tell Mute the serial number's last digit if asked.</li>
+            <li><b>🤐 Mute:</b> open the "Wires" section for that wire count and follow the <b>first</b> rule that is true. Text back which wire to cut, e.g. "second wire".</li>
+            <li><b>🙈 Blind:</b> you have one pad per wire. Tap the pad in the position Deaf says, counting from the first. A cut wire cannot be undone.</li>
+          </ul>
+        </details>
+
+        <details>
+          <summary>🔴 Big Button</summary>
+          <ul>
+            <li><b>🙉 Deaf:</b> tell Mute the button's color and word, then battery count and any lit indicators. If Blind has to hold, watch the strip color and say it. Then count Blind down to the right moment on the timer.</li>
+            <li><b>🤐 Mute:</b> follow the first true rule: <b>tap</b> or <b>hold</b>. If hold, text the strip's color to digit table result.</li>
+            <li><b>🙈 Blind:</b> there is one round pad. <b>Tap</b> = press and let go quickly. <b>Hold</b> = keep it pressed until Deaf says "release", which should be when the timer contains the digit.</li>
+          </ul>
+        </details>
+
+        <details>
+          <summary>🔣 Keypad</summary>
+          <ul>
+            <li><b>🙉 Deaf:</b> describe the four symbols (shapes only, e.g. "star, heart, skull, anchor") and say where each is (1 to 4).</li>
+            <li><b>🤐 Mute:</b> find the one column in the manual that has all four symbols. Text the order they appear in that column, top to bottom.</li>
+            <li><b>🙈 Blind:</b> four pads in a 2×2 grid, numbered 1 to 4. Press them in the order Deaf gives. A wrong press is a strike. Correct keys light up and are disabled.</li>
+          </ul>
+        </details>
+
+        <details>
+          <summary>🎵 Simon Says</summary>
+          <ul>
+            <li><b>🙉 Deaf:</b> watch the colors flash and call them out in order. The sequence repeats with one more flash each stage. Also tell Mute whether the serial number has a vowel and how many strikes there are.</li>
+            <li><b>🤐 Mute:</b> use the table for "vowel / no vowel" and the strike count. For every flashed color, text the color to press instead.</li>
+            <li><b>🙈 Blind:</b> four pads: top, right, bottom, left (red, blue, green, yellow). Listen to the pitches too: each position has its own tone. Press the translated positions in order, from the start each stage.</li>
+          </ul>
+        </details>
+
+        <details>
+          <summary>🧠 Memory</summary>
+          <ul>
+            <li><b>🙉 Deaf:</b> read the big display number and the four labels left to right. After each press, write down which position and label Blind pressed.</li>
+            <li><b>🤐 Mute:</b> use the table for the current stage and display number. It says a position, a label, or "same as stage N". Text the result.</li>
+            <li><b>🙈 Blind:</b> four pads in a row, positions 1 to 4 from the left. Press the position Deaf tells you. There are 4 stages. A mistake restarts from stage 1.</li>
+          </ul>
+        </details>
+
+        <details>
+          <summary>📡 Morse Code</summary>
+          <ul>
+            <li><b>🙉 Deaf:</b> a lamp blinks a word over and over: short = dot, long = dash. Read the blinks, and tell Mute the letters and the current frequency shown.</li>
+            <li><b>🤐 Mute:</b> decode the word with the Morse chart, find it in the table, and text the target frequency.</li>
+            <li><b>🙈 Blind:</b> three pads: left = lower frequency, middle = transmit, right = higher. Deaf says which way to go until the frequency matches, then press transmit. You can also hear the blinks as beeps.</li>
+          </ul>
+        </details>
+      </details>
+    </section>
+
+    <section id="screen-lobby" class="screen hidden"></section>
+    <section id="screen-game" class="screen game hidden"><div id="panes" class="single"></div></section>
+  </main>
+
+  <div id="overlay" class="overlay hidden"></div>
+  <audio id="voice" autoplay playsinline></audio>
+
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
