@@ -13,6 +13,8 @@ export const EMOTES = [
   { id: 'n10', label: '10', face: '🖐️🖐️' },
   { id: 'yes', label: 'Yes', face: '👍' },
   { id: 'no', label: 'No', face: '👎' },
+  { id: 'higher', label: 'Higher', face: '👍' },
+  { id: 'lower', label: 'Lower', face: '👎' },
 ];
 export const EMOTE_IDS = new Set(EMOTES.map((e) => e.id));
 export const emoteById = (id) => EMOTES.find((e) => e.id === id);

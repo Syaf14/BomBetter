@@ -17,11 +17,13 @@ function buildSteps(word) {
     [...code].forEach((sym, si) => {
       out.push({ on: true, d: sym === '.' ? 250 : 750 });
       const lastSym = si === code.length - 1;
-      out.push({ on: false, d: lastSym ? (li === arr.length - 1 ? 2500 : 750) : 250 });
+      out.push({ on: false, d: lastSym ? (li === arr.length - 1 ? 3500 : 1500) : 250 });
     });
   });
   return out;
 }
+
+let seenCycle = null; // last cycle the Blind player heard announced
 
 export default {
   type: 'morse',
@@ -36,7 +38,7 @@ export default {
     const words = WORDS.slice().sort();
     return `<h3>Morse Code</h3>
       <p>A lamp blinks a word in Morse, over and over. A short blink is a <b>dot</b>, a long blink a <b>dash</b>.
-      A longer pause separates letters, and the biggest pause marks where the word restarts.
+      A longer pause separates letters, and the biggest pause marks where the word restarts (the Blind player hears "reset").
       Decode the word, then tell the defuser which frequency to tune to and transmit.</p>
       <table>${words.map((w) => `<tr><td>${w}</td><td>${fmt(rules.freq[w])} MHz</td></tr>`).join('')}</table>
       <h4>Morse chart</h4>
@@ -47,11 +49,11 @@ export default {
     const word = rng.pick(WORDS);
     let idx;
     do idx = rng.int(0, FREQS.length - 1); while (FREQS[idx] === rules.freq[word]);
-    return { word, idx, steps: buildSteps(word), i: 0, lamp: false, nextAt: now + 1000 };
+    return { word, idx, steps: buildSteps(word), i: 0, cycle: 0, lamp: false, nextAt: now + 1000 };
   },
 
   view: (s) => ({ lamp: s.lamp, freq: fmt(FREQS[s.idx]) }),
-  blindView: (s) => ({ tone: s.lamp }),
+  blindView: (s) => ({ tone: s.lamp, cycle: s.cycle }),
 
   tick(s, ctx) {
     if (ctx.t < s.nextAt) return false;
@@ -59,6 +61,7 @@ export default {
     s.lamp = st.on;
     s.nextAt = ctx.t + st.d;
     s.i = (s.i + 1) % s.steps.length;
+    if (s.i === 0) s.cycle++;
     return true;
   },
 
@@ -82,6 +85,8 @@ export default {
       <button class="pad" data-a="1" aria-label="Higher frequency"></button></div>`;
     el.querySelectorAll('.pad').forEach((b) => (b.onclick = () =>
       ctx.send(b.dataset.a === 'tx' ? { tx: true } : { move: +b.dataset.a })));
+    if (seenCycle !== null && v.cycle > seenCycle) ctx.audio.speak('reset');
+    seenCycle = v.cycle;
     if (v.tone) ctx.audio.startTone(640); else ctx.audio.stopTone();
   },
 };
