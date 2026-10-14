@@ -190,3 +190,45 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .hand-pop.pop { animation: pop .35s ease-out; }
 @keyframes pop { from { transform: translateX(-50%) scale(.4); opacity: 0; } to { transform: translateX(-50%) scale(1); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .hand-pop.pop { animation: none; } }
+
+/* ---- Landscape phones: short viewport, so use two columns and trim chrome ---- */
+@media (orientation: landscape) and (max-height: 520px) {
+  :root { --gutter: 12px; }
+  body { font-size: 15px; }
+  .topbar { padding: 4px var(--gutter); }
+  .screen { padding: 12px var(--gutter) 20px; }
+  #panes.single .pane-wrap { max-width: none; }
+  .pane { padding: 8px var(--gutter) 12px; }
+  .role-head { margin-bottom: 4px; }
+  .role-head span, .room-slot, .talk .hint:empty { display: none; }
+
+  /* Deaf: bomb on the left, voice + chat on the right */
+  .pane.deaf { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 0 14px; align-items: start; }
+  .pane.deaf > .role-head { grid-column: 1 / -1; }
+  .pane.deaf > .bomb { grid-column: 1; grid-row: 2 / span 2; max-height: calc(100dvh - 90px); overflow-y: auto; }
+  .pane.deaf > .talk { grid-column: 2; grid-row: 2; margin: 0 0 8px; }
+  .pane.deaf > #d-chat { grid-column: 2; grid-row: 3; }
+  .timer { font-size: 2rem; }
+  .modules { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .chat { margin-top: 0; }
+  .chat-log { height: calc(100dvh - 250px); min-height: 60px; }
+
+  /* Mute: manual on the left, emotes + chat on the right */
+  .pane.mute { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 0 14px; align-items: start; }
+  .pane.mute > .role-head, .pane.mute > .mute-top, .pane.mute > .tabs { grid-column: 1 / -1; }
+  .pane.mute > .manual { grid-column: 1; grid-row: 4 / span 2; max-height: calc(100dvh - 130px); font-size: 1rem; }
+  .pane.mute > .emote-bar { grid-column: 2; grid-row: 4; margin: 0 0 8px; }
+  .pane.mute > #m-chat { grid-column: 2; grid-row: 5; }
+
+  /* Blind: status on top, pads big, prev/next beside them */
+  .pane.blind { min-height: 100dvh; grid-template-columns: 1fr 150px; grid-template-rows: auto auto 1fr; gap: 8px 12px; }
+  .pane.blind > .role-head, .pane.blind > .blind-status { grid-column: 1 / -1; }
+  .blind-stage, .blind-stage > * { min-height: 0; }
+  .blind-nav { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+  .blind-nav .pad { min-height: 0; }
+  .pad.round, .simon.blind { width: min(60dvh, 60vw); height: min(60dvh, 60vw); }
+
+  .overlay .card { padding: 14px; max-height: 94dvh; overflow-y: auto; }
+  .hand-pop { top: 8%; }
+  .hand-pop .hand-face { font-size: 3rem; }
+}
