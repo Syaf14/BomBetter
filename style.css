@@ -36,6 +36,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .join input { flex: 1; text-align: center; font-size: 1.2rem; letter-spacing: .3em; text-transform: uppercase; }
 .how { margin-top: 24px; color: var(--dim); }
 .how summary { cursor: pointer; color: var(--text); font-weight: 700; font-size: 1.1rem; }
+.how h2 { color: var(--accent); font-size: 1.2rem; margin: 18px 0 6px; }
 .how h3 { color: var(--accent); font-size: .95rem; margin: 18px 0 6px; }
 .how p, .how li { line-height: 1.5; }
 .how ul, .how ol { padding-left: 20px; margin: 6px 0; }
@@ -302,3 +303,6 @@ body:has(#screen-home:not(.hidden)) {
 .pad:disabled { opacity: .45; border-color: #3a3a4a; box-shadow: none; }
 .blind-nav .pad { color: #9a9ab2; }
 .blind .role-head b, .blind-status { color: #8c8ca0; }
+.blind-status { align-items: center; }
+.pad.mic { min-height: 40px; padding: 4px 18px; font-size: 1.1rem; opacity: .6; }
+.pad.mic.live { opacity: 1; border-color: var(--good); box-shadow: 0 0 12px var(--good); }

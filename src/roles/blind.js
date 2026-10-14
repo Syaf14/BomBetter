@@ -6,7 +6,7 @@ import { clock } from '../clock.js';
 export function createBlind(root, ctx) {
   root.innerHTML = `<section class="pane blind">
     <header class="role-head"><b>🙈 BLIND</b><span>Listen to the Deaf player. You can't see the bomb.</span></header>
-    <div class="blind-status"><span id="b-idx"></span><span id="b-str"></span></div>
+    <div class="blind-status"><span id="b-idx"></span>${ctx.voice ? '<button class="pad mic" id="b-mic" type="button" aria-label="Microphone to Mute player: off">🎤</button>' : ''}<span id="b-str"></span></div>
     <div class="blind-stage" id="b-stage"></div>
     <nav class="blind-nav">
       <button class="pad" id="b-prev" aria-label="Previous module">◀</button>
@@ -41,6 +41,19 @@ export function createBlind(root, ctx) {
     shown = null;
     renderCur();
     audio.speak(`Module ${cur + 1}`);
+  }
+  const mic = root.querySelector('#b-mic');
+  if (mic) {
+    mic.onclick = async () => {
+      try {
+        const on = await ctx.voice.toggle();
+        mic.classList.toggle('live', on);
+        mic.setAttribute('aria-label', `Microphone to Mute player: ${on ? 'on' : 'off'}`);
+        audio.speak(on ? 'Mic on' : 'Mic off');
+      } catch {
+        audio.speak('Microphone unavailable');
+      }
+    };
   }
   root.querySelector('#b-prev').onclick = () => go(-1);
   root.querySelector('#b-next').onclick = () => go(1);

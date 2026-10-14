@@ -46,7 +46,7 @@ function onServer(msg) {
     case 'ev': for (const p of Object.values(app.panes)) p.event?.(msg); break;
     case 'chat': app.panes.deaf?.chat(msg); app.panes.mute?.chat(msg); break;
     case 'emote': app.panes.deaf?.emote(msg); app.panes.mute?.emote(msg); break;
-    case 'say': app.panes.blind?.say(msg.text); break;
+    case 'say': app.panes.blind?.say(msg.text); if (app.role === 'mute') audio.speak(msg.text); break;
     case 'end': showEnd(msg); break;
     case 'error': app.lobby ? ($('#lobby-err').textContent = msg.text) : setError(msg.text); break;
   }
@@ -131,11 +131,19 @@ function startGame(msg) {
 
   const base = { send: (m) => app.send(m), roomSeed: msg.roomSeed };
   const makers = {
-    blind: (el) => createBlind(el, base),
+    blind: (el) => {
+      let voice = null;
+      if (!solo && msg.roster.mute) { // Deaf cannot hear, so Blind's mic only goes to Mute
+        app.talker = createTalker(app.net.peer, [msg.roster.mute]);
+        voice = { toggle: () => app.talker.toggle() };
+      }
+      return createBlind(el, { ...base, voice });
+    },
     deaf: (el) => {
       let voice = null;
-      if (!solo) {
-        app.talker = createTalker(app.net.peer, msg.roster.blind);
+      const listeners = [msg.roster.blind, msg.roster.mute].filter(Boolean);
+      if (!solo && listeners.length) {
+        app.talker = createTalker(app.net.peer, listeners);
         voice = { toggle: () => app.talker.toggle() };
       }
       return createDeaf(el, { ...base, voice });
@@ -176,7 +184,7 @@ async function hostGame(solo) {
     app.net = net;
     app.mode = 'host';
     app.send = (m) => app.host.onMessage(net.id, m);
-    net.onCall = (call) => app.role === 'blind' && answerVoice(call, $('#voice'));
+    net.onCall = (call) => (app.role === 'blind' || app.role === 'mute') && answerVoice(call);
     net.onError = (e) => console.warn('peer error', e);
     app.host = new HostController({ net, name: playerName() || 'Host', deliverLocal: onServer });
   } catch (e) {
@@ -195,7 +203,7 @@ async function joinGame(code) {
     app.mode = 'client';
     app.send = (m) => net.send(m);
     net.onMessage = onServer;
-    net.onCall = (call) => app.role === 'blind' && answerVoice(call, $('#voice'));
+    net.onCall = (call) => (app.role === 'blind' || app.role === 'mute') && answerVoice(call);
     net.onClose = () => {
       stopGame();
       show('home');

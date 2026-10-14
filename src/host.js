@@ -97,10 +97,10 @@ export class HostController {
         break;
       }
 
-      case 'say': // typed text spoken aloud on the Blind player's device
+      case 'say': // typed text spoken aloud on the Blind and Mute players's device
         if (this.phase !== 'playing' || asRole !== 'deaf') return;
         for (const q of this.players.values()) {
-          if (q.role === 'blind' || q.role === 'solo') this.sendTo(q.id, { t: 'say', text: String(msg.text).slice(0, 200) });
+          if (['blind', 'mute', 'solo'].includes(q.role)) this.sendTo(q.id, { t: 'say', text: String(msg.text).slice(0, 200) });
         }
         break;
 

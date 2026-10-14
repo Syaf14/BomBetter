@@ -1,5 +1,5 @@
-// Live voice from the Deaf player to the Blind player (WebRTC audio via the same PeerJS peers).
-export function createTalker(peer, targetId) {
+// Live voice over WebRTC (same PeerJS peers). Only Deaf and Blind have a mic; only Mute and Blind listen.
+export function createTalker(peer, targetIds) {
   let stream = null;
   let on = false;
   return {
@@ -8,7 +8,7 @@ export function createTalker(peer, targetId) {
     async toggle() {
       if (!stream) {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        peer.call(targetId, stream);
+        targetIds.forEach((id) => peer.call(id, stream));
         on = true;
       } else {
         on = !on;
@@ -20,10 +20,18 @@ export function createTalker(peer, targetId) {
   };
 }
 
-export function answerVoice(call, audioEl) {
+// Each incoming call gets its own <audio> element so Blind can hear Deaf while Mute hears both.
+export function answerVoice(call) {
   call.answer();
   call.on('stream', (s) => {
-    audioEl.srcObject = s;
-    audioEl.play().catch(() => {});
+    const el = document.createElement('audio');
+    el.autoplay = true;
+    el.setAttribute('playsinline', '');
+    el.srcObject = s;
+    document.body.append(el);
+    el.play().catch(() => {});
+    const drop = () => el.remove();
+    call.on('close', drop);
+    call.on('error', drop);
   });
 }

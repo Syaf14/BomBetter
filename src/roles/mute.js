@@ -16,7 +16,7 @@ const BASICS = `<h3>Basics</h3>
 export function createMute(root, ctx) {
   const pages = [{ title: 'Basics', html: BASICS }, ...ctx.manual];
   root.innerHTML = `<section class="pane mute">
-    <header class="role-head"><b>🤐 MUTE</b><span>You hold the manual. You can only send text.</span></header>
+    <header class="role-head"><b>🤐 MUTE</b><span>You hold the manual. You can hear Deaf and Blind, but you can only send text.</span></header>
     <div class="room-slot"></div>
     <div class="mute-top"><span class="timer sm" id="m-timer">--:--</span><span id="m-prog"></span><span class="strikes" id="m-str"></span></div>
     <nav class="tabs">${pages.map((p, i) => `<button type="button" data-i="${i}" class="${i ? '' : 'on'}">${p.title}</button>`).join('')}</nav>

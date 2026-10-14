@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0b0b0e">
   <title>BomBetter</title>
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon.jpg">
-  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="apple-touch-icon" href="icons/icon-180.jpg">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -56,8 +56,8 @@
 
         <h3>The 3 roles</h3>
         <ul class="roles-help">
-          <li><b>🙉 Deaf</b> <em>sees the bomb</em> but hears nothing. Describe what you see to Blind (speak, or type to speak), and chat with Mute in text.</li>
-          <li><b>🤐 Mute</b> <em>has the manual</em> but can only type. Look up what Deaf describes and text back the answer. The manual rules are random every game.</li>
+          <li><b>🙉 Deaf</b> <em>sees the bomb</em> but hears nothing. Describe what you see to Blind and Mute (speak, or type to speak), and chat with Mute in text.</li>
+          <li><b>🤐 Mute</b> <em>has the manual</em> and can hear, but can only type. Look up what Deaf describes and text back the answer. The manual rules are random every game.</li>
           <li><b>🙈 Blind</b> <em>touches the bomb</em> but sees only a dark screen with unlabeled pads. Listen to Deaf, then press, cut or hold exactly what you are told.</li>
         </ul>
 
@@ -95,7 +95,7 @@
         <h3>Module 1: Wires (a clean solve)</h3>
         <div class="line deaf"><b>🙉 Deaf → Mute (text):</b> "Module 1, Wires. 3 wires: red, blue, yellow. Serial ends in 3."</div>
         <div class="line mute"><b>🤐 Mute:</b> opens the "3 wires" section. The first true rule says "If there are no black wires, cut the second wire." Texts: "No black, so cut the second wire."</div>
-        <div class="line deaf"><b>🙉 Deaf → Blind (voice):</b> "Module 1, cut the second wire."</div>
+        <div class="line deaf"><b>🙉 Deaf → Blind and Mute (voice):</b> "Module 1, cut the second wire."</div>
         <div class="line blind"><b>🙈 Blind:</b> is on module 1 (the game says "Module 1"). Taps the second pad, hears the solved chime and says "Cut. Next module?"</div>
 
         <h3>Module 2: Keypad (a strike, then recovery)</h3>
@@ -108,6 +108,9 @@
 
         <h3>The end</h3>
         <p>After the other two modules are solved before the timer hits 0:00, everyone sees <b>✅ BOMB DEFUSED</b>. If the timer ends or strikes run out, it is <b>💥 BOOM</b>.</p>
+
+        <h2>TAKE NOTE</h2>
+        <p>1 strike make the bomb timer <b>FASTER</b>. More strikes, more <b>FASTER</b> to <b>💥 BOOM</b>.</p>
 
         <h3>Good habits</h3>
         <ul>
@@ -188,7 +191,6 @@
   </div>
 
   <div id="overlay" class="overlay hidden"></div>
-  <audio id="voice" autoplay playsinline></audio>
 
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <script type="module" src="src/main.js"></script>
