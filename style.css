@@ -291,3 +291,7 @@ body:has(#screen-home:not(.hidden)) {
 }
 @keyframes rotate-hint { 0%, 30% { transform: rotate(0); } 60%, 100% { transform: rotate(-90deg); } }
 @media (prefers-reduced-motion: reduce) { .rotate-phone { animation: none; } }
+.menu > * { min-width: 0; }
+#screen-home { overflow-x: clip; }
+.actions { grid-template-columns: minmax(0, 1fr); }
+.actions .btn { white-space: normal; }
