@@ -71,7 +71,20 @@ function renderLobby() {
       const cls = t ? (t.id === L.you ? 'mine' : 'taken') : '';
       return `<button class="role ${cls}" data-r="${r}" ${t && t.id !== L.you ? 'disabled' : ''}>
         <span class="ico">${ROLE_INFO[r].icon}</span><b>${ROLE_INFO[r].title}</b>
-        <small>${ROLE_INFO[r].text}</small><em>${t ? esc(t.name) : 'free'}</em></button>`;
+        <small>${ROLE_INFO[r].text}</small>
+        <div class="badge mt-2" style="
+          display: inline-block;
+          padding: 2px 8px;
+          width: fit-content;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #ffd700, #ff8c00);
+          box-shadow: 0 0 10px rgba(255, 165, 0, 0.5);
+          font-weight: bold;
+          color: #111;
+          font-size: 0.75rem;
+        ">
+          ${t ? esc(t.name) : 'free'}
+        </div></button>`;
     }).join('')}</div>
     ${isHost ? `<div class="settings">
       <label>Modules <select id="set-mod">${[3, 4, 5, 6].map((n) => `<option ${n === 4 ? 'selected' : ''}>${n}</option>`).join('')}</select></label>

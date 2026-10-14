@@ -18,6 +18,7 @@
 
   <main id="app">
     <section id="screen-home" class="screen">
+      <div class="menu">
       <div class="hero">
         <svg class="hero-bomb" viewBox="0 0 200 200" aria-hidden="true">
           <path class="fuse" d="M128 44 C140 24 160 26 164 10" fill="none" stroke="#c9a46a" stroke-width="5" stroke-linecap="round"/>
@@ -34,7 +35,8 @@
         <p class="tag">A bomb. Three players. Each one is missing a sense.</p>
         <div class="hero-roles"><span>🙉 Deaf<small>sees</small></span><span>🤐 Mute<small>reads</small></span><span>🙈 Blind<small>touches</small></span></div>
       </div>
-      <label class="field">Your name <input id="name" maxlength="16" placeholder="Player" autocomplete="nickname"></label>
+      <div class="menu-actions">
+      <label class="field">Your name <input id="name" maxlength="18" placeholder="Player" autocomplete="nickname"></label>
       <div class="actions">
         <button class="btn" id="btn-host" type="button">Host a game</button>
         <div class="join">
@@ -44,6 +46,8 @@
         <button class="btn ghost" id="btn-solo" type="button">Solo test (one device, works offline)</button>
       </div>
       <p class="err" id="home-err"></p>
+      </div>
+      </div>
       <details class="how" open>
         <summary>📖 How to play</summary>
 
@@ -176,6 +180,12 @@
     <section id="screen-lobby" class="screen hidden"></section>
     <section id="screen-game" class="screen game hidden"><div id="panes" class="single"></div></section>
   </main>
+
+  <div id="rotate-gate" role="alert">
+    <div class="rotate-phone" aria-hidden="true">📱</div>
+    <h2>Rotate your phone</h2>
+    <p>BomBetter is played in landscape. Turn your device sideways to continue.</p>
+  </div>
 
   <div id="overlay" class="overlay hidden"></div>
   <audio id="voice" autoplay playsinline></audio>
