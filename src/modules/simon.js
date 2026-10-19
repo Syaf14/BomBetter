@@ -1,3 +1,4 @@
+import { rrect, centeredText } from './draw.js';
 // Simon Says: the Deaf player SEES colors flash, the Blind player HEARS pitches and taps positions.
 // Color index = position index: 0 red (top), 1 blue (right), 2 green (bottom), 3 yellow (left).
 export const COLORS = ['red', 'blue', 'green', 'yellow'];
@@ -70,6 +71,25 @@ export default {
     el.innerHTML = `<div class="simon">${COLORS.map((c, i) =>
       `<div class="sq ${POSITIONS[i]} ${v.lit === i ? 'on' : ''}" style="--c:${CSS[c]}"></div>`).join('')}
       <div class="simon-stage">${v.stage}/${v.total}</div></div>`;
+  },
+
+  draw3d(ctx, v, w, h) {
+    const s = Math.min(w, h) * 0.34;
+    const cx = w / 2;
+    const cy = h / 2;
+    const off = s * 0.96;
+    const spots = [[0, -off], [off, 0], [0, off], [-off, 0]]; // top, right, bottom, left = red, blue, green, yellow
+    COLORS.forEach((c, i) => {
+      const [dx, dy] = spots[i];
+      const on = v.lit === i;
+      ctx.save();
+      ctx.globalAlpha = on ? 1 : 0.3;
+      if (on) { ctx.shadowColor = CSS[c]; ctx.shadowBlur = s * 0.6; }
+      ctx.fillStyle = CSS[c];
+      rrect(ctx, cx + dx - s / 2, cy + dy - s / 2, s, s, s * 0.22); ctx.fill();
+      ctx.restore();
+    });
+    centeredText(ctx, `${v.stage}/${v.total}`, cx, cy, s * 0.42, '#8c8b99');
   },
 
   renderBlind(el, v, ctx) {

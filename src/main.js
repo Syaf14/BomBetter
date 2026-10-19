@@ -5,7 +5,7 @@ import { createDeaf } from './roles/deaf.js';
 import { createMute } from './roles/mute.js';
 import { createTalker, answerVoice } from './voice.js';
 import { clock } from './clock.js';
-import { mountRoom } from './room.js';
+import { mountScene } from './3d/stage.js';
 import { audio } from './audio.js';
 
 const $ = (s) => document.querySelector(s);
@@ -98,7 +98,18 @@ function renderLobby() {
     : '<p class="hint">Waiting for the host to start…</p>'}
     <p class="err" id="lobby-err"></p>`;
 
-  mountRoom($('#lobby-room'), L.code);
+  // The 3D lobby scene outlives re-renders (every join/pick re-renders the lobby): re-parent it, don't rebuild it.
+  if (!app.lobbyScene || app.lobbySeed !== L.code) {
+    app.lobbyScene?.destroy();
+    app.lobbyEl = document.createElement('div');
+    app.lobbyEl.id = 'lobby-room';
+    app.lobbyScene = mountScene(app.lobbyEl, { seed: L.code, bomb: 'none' });
+    app.lobbySeed = L.code;
+  }
+  $('#lobby-room').replaceWith(app.lobbyEl);
+  app.lobbyScene.setPlayers(Object.fromEntries(ROLES.map((r) => [r, taken[r]
+    ? { name: taken[r].name, state: taken[r].id === L.you ? 'mine' : 'taken' }
+    : { state: 'free' }])));
   document.querySelectorAll('.role').forEach((b) => (b.onclick = () => {
     audio.unlock();
     app.send({ t: 'pick', role: mine === b.dataset.r ? null : b.dataset.r });
@@ -121,6 +132,8 @@ function stopGame() {
 
 function startGame(msg) {
   stopGame();
+  app.lobbyScene?.destroy(); // free the lobby's WebGL context while playing
+  app.lobbyScene = null;
   $('#overlay').classList.add('hidden');
   app.role = msg.role;
   const solo = msg.role === 'solo';

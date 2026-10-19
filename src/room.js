@@ -15,20 +15,30 @@ const PROPS = {
 };
 const TINTS = ['#e5484d', '#3e63dd', '#f5c518', '#30a46c', '#ff8a3d', '#b35fe8', '#f2f2f2'];
 
-export const roomSvg = (seed) => {
+/**
+ * The seeded layout, in the 400x124 SVG coordinate space. Shared by the SVG room below and the 3D room
+ * (src/3d/room3d.js). The rng calls must stay in this exact order so every player gets the same room.
+ */
+export function roomLayout(seed) {
   const rng = makeRng(`room:${seed}`);
   const order = rng.shuffle(PAINTINGS);
-  const paintings = order.map((c, i) => {
-    const x = 22 + i * 92 + rng.int(-4, 4);
-    const w = rng.pick([48, 56, 64]);
-    const h = rng.pick([36, 44, 52]);
-    return `<rect x="${x - 3}" y="${12 - 3}" width="${w + 6}" height="${h + 6}" fill="${FRAME}"/>` +
-      `<rect x="${x}" y="12" width="${w}" height="${h}" fill="${c}"/>`;
-  }).join('');
+  const paintings = order.map((color, i) => ({
+    color, x: 22 + i * 92 + rng.int(-4, 4), w: rng.pick([48, 56, 64]), h: rng.pick([36, 44, 52]),
+  }));
   const names = rng.shuffle(Object.keys(PROPS)).slice(0, 4);
-  const props = names.map((n, i) => PROPS[n](50 + i * 95 + rng.int(-18, 18), rng.pick(TINTS))).join('');
-  const rug = rng.chance(0.6)
-    ? `<ellipse cx="${rng.int(120, 280)}" cy="116" rx="${rng.int(55, 90)}" ry="5" fill="${rng.pick(TINTS)}" opacity=".35"/>` : '';
+  const props = names.map((name, i) => ({ name, x: 50 + i * 95 + rng.int(-18, 18), tint: rng.pick(TINTS) }));
+  const rug = rng.chance(0.6) ? { cx: rng.int(120, 280), rx: rng.int(55, 90), tint: rng.pick(TINTS) } : null;
+  return { paintings, props, rug };
+}
+
+export const roomSvg = (seed) => {
+  const layout = roomLayout(seed);
+  const paintings = layout.paintings.map(({ x, w, h, color }) =>
+    `<rect x="${x - 3}" y="${12 - 3}" width="${w + 6}" height="${h + 6}" fill="${FRAME}"/>` +
+    `<rect x="${x}" y="12" width="${w}" height="${h}" fill="${color}"/>`).join('');
+  const props = layout.props.map((p) => PROPS[p.name](p.x, p.tint)).join('');
+  const rug = layout.rug
+    ? `<ellipse cx="${layout.rug.cx}" cy="116" rx="${layout.rug.rx}" ry="5" fill="${layout.rug.tint}" opacity=".35"/>` : '';
   return `<svg viewBox="0 0 400 124" role="img" aria-label="A decorated room" preserveAspectRatio="xMidYMax slice">
     <rect width="400" height="84" fill="#2a2433"/><rect y="84" width="400" height="40" fill="#3b2f27"/>
     <rect y="82" width="400" height="4" fill="#00000055"/>${paintings}${rug}${props}</svg>`;

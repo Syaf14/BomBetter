@@ -3,14 +3,14 @@ import { MODULES } from '../modules/index.js';
 import { clock } from '../clock.js';
 import { createChat } from './chat.js';
 import { emoteById } from './emote.js';
-import { mountRoom } from '../room.js';
+import { mountScene } from '../3d/stage.js';
 
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
 
 export function createDeaf(root, ctx) {
   root.innerHTML = `<section class="pane deaf">
     <header class="role-head"><b>🙉 DEAF</b><span>You see the bomb. Tell the Blind player what to do; ask the Mute player for the manual.</span></header>
-    <div class="room-slot"></div>
+    <div class="seat-slot"></div>
     <div class="hand-pop hidden" id="d-hand" aria-live="assertive"></div>
     <div class="bomb">
       <div class="bomb-top"><div class="timer" id="d-timer">--:--</div><div class="strikes" id="d-strikes"></div></div>
@@ -28,7 +28,18 @@ export function createDeaf(root, ctx) {
     me: 'deaf', other: 'Mute', send: ctx.send,
     quick: ['Say again', 'Which module?', 'Wait', 'Done ✓'],
   });
-  if (ctx.roomSeed) mountRoom(root.querySelector('.room-slot'), ctx.roomSeed);
+  let selected = -1;
+  const scene = ctx.roomSeed ? mountScene(root.querySelector('.seat-slot'), {
+    seed: ctx.roomSeed, seat: 'deaf', bomb: 'full',
+    onSelect: (i) => select(i),
+    onMode: (is3d) => root.firstElementChild.classList.toggle('has3d', is3d), // the 3D bomb replaces the module cards
+  }) : null;
+  function select(i) {
+    selected = i;
+    if (i < 0) scene?.zoomOut(); else scene?.setSelected(i);
+    [...modsEl.children].forEach((c, j) => c.classList.toggle('sel', j === i));
+    modsEl.children[i]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
   const hand = root.querySelector('#d-hand');
   let handTimer = 0;
   const modsEl = root.querySelector('#d-mods');
@@ -74,6 +85,7 @@ export function createDeaf(root, ctx) {
           `<div class="mod"><div class="mod-label">${i + 1}. ${MODULES[m.type].title}</div><div class="mod-body"></div></div>`).join('');
         shown.length = 0;
       }
+      scene?.setBomb({ modules: v.modules, strikes: v.strikes, strikesMax: v.strikesMax, bomb: b });
       v.modules.forEach((m, i) => {
         const key = JSON.stringify(m);
         if (shown[i] === key) return;
@@ -88,11 +100,13 @@ export function createDeaf(root, ctx) {
         root.classList.add('flash');
         setTimeout(() => root.classList.remove('flash'), 450);
       }
+      scene?.react(ev.e);
     },
     chat: (msg) => chat.add(msg),
     emote(msg) {
       const e = emoteById(msg.id);
       if (!e) return;
+      scene?.emote(e);
       hand.innerHTML = `<span class="hand-face">${e.face}</span><b>${e.label}</b>`;
       hand.classList.remove('hidden', 'pop');
       void hand.offsetWidth; // restart the pop animation
@@ -102,6 +116,6 @@ export function createDeaf(root, ctx) {
       chat.add({ from: 'mute', text: `${e.face} ${e.label}` });
     },
     destroy() {
-      clearTimeout(handTimer); cancelAnimationFrame(raf); },
+      clearTimeout(handTimer); cancelAnimationFrame(raf); scene?.destroy(); },
   };
 }

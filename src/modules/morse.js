@@ -1,3 +1,4 @@
+import { rrect, centeredText } from './draw.js';
 // Morse: a lamp blinks a word (Deaf SEES it, Blind HEARS it). The manual maps word -> frequency.
 // The Blind player tunes the frequency and transmits.
 const WORDS = ['shell', 'halls', 'slick', 'trick', 'boxes', 'leaks', 'strobe', 'bistro',
@@ -76,6 +77,22 @@ export default {
   renderDeaf(el, v) {
     el.innerHTML = `<div class="morse"><div class="lamp ${v.lamp ? 'on' : ''}"></div>
       <div class="freq">${v.freq}<small> MHz</small></div></div>`;
+  },
+
+  draw3d(ctx, v, w, h) {
+    const r = h * 0.2;
+    const cx = w / 2;
+    const cy = h * 0.3;
+    ctx.save();
+    if (v.lamp) { ctx.shadowColor = '#ffd84a'; ctx.shadowBlur = r * 1.4; }
+    ctx.fillStyle = v.lamp ? '#ffd84a' : '#2b2410';
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    ctx.strokeStyle = '#4a3f17'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = '#1a1a0a';
+    rrect(ctx, w * 0.2, h * 0.58, w * 0.6, h * 0.32, h * 0.05); ctx.fill();
+    centeredText(ctx, `${v.freq} MHz`, w / 2, h * 0.74, h * 0.2, '#ffd84a', 800, 'ui-monospace, Consolas, monospace');
   },
 
   renderBlind(el, v, ctx) {

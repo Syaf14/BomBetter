@@ -1,3 +1,4 @@
+import { centeredText } from './draw.js';
 // The Big Button: tap, or hold and release on a timer digit. Rules randomized per game.
 const COLORS = ['red', 'blue', 'white', 'yellow'];
 const LABELS = ['ABORT', 'DETONATE', 'HOLD', 'PRESS'];
@@ -90,6 +91,24 @@ export default {
     el.innerHTML = `<div class="bigbtn-wrap">
       <div class="bigbtn" style="--c:${CSS[v.color]};${v.color === 'white' || v.color === 'yellow' ? 'color:#111' : ''}"><span>${v.label}</span></div>
       <div class="strip" style="background:${v.strip ? CSS[v.strip] : '#2a2a30'}"></div></div>`;
+  },
+
+  draw3d(ctx, v, w, h) {
+    const r = Math.min(h * 0.4, w * 0.24);
+    const cx = w * 0.4;
+    const cy = h * 0.5;
+    ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.arc(cx, cy + r * 0.08, r * 1.08, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = CSS[v.color];
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,.22)';
+    ctx.beginPath(); ctx.arc(cx, cy + r * 0.12, r * 0.82, 0, Math.PI); ctx.fill();
+    const dark = v.color === 'white' || v.color === 'yellow';
+    centeredText(ctx, v.label, cx, cy, r * (v.label.length > 6 ? 0.28 : 0.36), dark ? '#111' : '#fff');
+    ctx.fillStyle = v.strip ? CSS[v.strip] : '#2a2a30';
+    ctx.fillRect(w * 0.78, h * 0.12, w * 0.1, h * 0.76);
+    ctx.strokeStyle = '#555'; ctx.lineWidth = 3;
+    ctx.strokeRect(w * 0.78, h * 0.12, w * 0.1, h * 0.76);
   },
 
   renderBlind(el, v, ctx) {

@@ -1,3 +1,4 @@
+import { rrect, centeredText } from './draw.js';
 // Keypad: press four symbols in the order they appear in the matching manual column.
 const GLYPHS = [...'☺★☾♠♣♥♦¶ΩΨЖ☯✿☂✈☎✂⚓☠⚡♫✚❄☀⚙✉⌛♞☢'];
 
@@ -43,6 +44,19 @@ export default {
   renderDeaf(el, v) {
     el.innerHTML = `<div class="keypad">${v.glyphs.map((g, i) =>
       `<div class="key ${v.lit[i] ? 'lit' : ''}">${g}</div>`).join('')}</div>`;
+  },
+
+  draw3d(ctx, v, w, h) {
+    const g = Math.min(w, h) * 0.04;
+    const kw = (w * 0.78 - g) / 2;
+    const kh = (h - g * 3) / 2;
+    v.glyphs.forEach((glyph, i) => {
+      const x = w * 0.11 + (i % 2) * (kw + g);
+      const y = g + Math.floor(i / 2) * (kh + g);
+      ctx.fillStyle = v.lit[i] ? '#30a46c' : '#e9e2cf';
+      rrect(ctx, x, y, kw, kh, kh * 0.14); ctx.fill();
+      centeredText(ctx, glyph, x + kw / 2, y + kh / 2 + kh * 0.04, kh * 0.62, v.lit[i] ? '#fff' : '#15151a', 700, '"Segoe UI Symbol", "Noto Sans Symbols", "Apple Symbols", system-ui, sans-serif');
+    });
   },
 
   renderBlind(el, v, ctx) {

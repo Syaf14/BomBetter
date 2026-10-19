@@ -1,3 +1,4 @@
+import { centeredText } from './draw.js';
 // Wires: cut the right wire. The rule set per wire-count is randomized every game.
 const COLORS = ['red', 'blue', 'yellow', 'black', 'white'];
 const POS = ['first', 'second', 'third', 'last'];
@@ -83,6 +84,28 @@ export default {
   renderDeaf(el, v) {
     el.innerHTML = `<div class="wires">${v.wires.map((c, i) =>
       `<div class="wire ${v.cut[i] ? 'cut' : ''}" style="--w:${WIRE_CSS[c]}"></div>`).join('')}</div>`;
+  },
+
+  /** Deaf's 3D face: coloured wires, cut ones show a gap. Drawn into a w x h canvas area. */
+  draw3d(ctx, v, w, h) {
+    const n = v.wires.length;
+    const gap = h / (n + 1);
+    const lw = Math.min(h * 0.09, gap * 0.55);
+    ctx.lineCap = 'round';
+    v.wires.forEach((c, i) => {
+      const y = gap * (i + 1);
+      const seg = (x0, x1, style, width) => {
+        ctx.strokeStyle = style; ctx.lineWidth = width;
+        ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+      };
+      ctx.globalAlpha = v.cut[i] ? 0.6 : 1;
+      const parts = v.cut[i] ? [[w * 0.08, w * 0.4], [w * 0.6, w * 0.92]] : [[w * 0.08, w * 0.92]];
+      for (const [a, b] of parts) { seg(a, b, '#9a9ab0', lw + 5); seg(a, b, WIRE_CSS[c], lw); }
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#6a6a7a';
+      for (const x of [w * 0.06, w * 0.94]) { ctx.beginPath(); ctx.arc(x, y, lw * 0.8, 0, Math.PI * 2); ctx.fill(); }
+    });
+    if (!n) centeredText(ctx, '-', w / 2, h / 2, h * 0.3, '#888');
   },
 
   renderBlind(el, v, ctx) {

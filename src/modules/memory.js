@@ -1,3 +1,4 @@
+import { rrect, centeredText } from './draw.js';
 // Memory: four stages. A display digit tells you which button to press, using a randomized table.
 // Later stages can refer back to earlier presses ("same position as stage 1" etc.).
 const ORD = ['', '1st', '2nd', '3rd', '4th'];
@@ -74,6 +75,23 @@ export default {
       <div class="mem-display">${v.display}</div>
       <div class="mem-btns">${v.labels.map((l) => `<div class="mem-btn">${l}</div>`).join('')}</div>
       <div class="pips">${[0, 1, 2, 3].map((i) => `<i class="${i < v.stage ? 'on' : ''}"></i>`).join('')}</div></div>`;
+  },
+
+  draw3d(ctx, v, w, h) {
+    ctx.fillStyle = '#0a2a14';
+    rrect(ctx, w * 0.1, h * 0.04, w * 0.8, h * 0.44, h * 0.06); ctx.fill();
+    centeredText(ctx, String(v.display), w / 2, h * 0.27, h * 0.38, '#5dff8a', 800, 'ui-monospace, Consolas, monospace');
+    const bw = (w * 0.8 - 3 * (w * 0.03)) / 4;
+    v.labels.forEach((l, i) => {
+      const x = w * 0.1 + i * (bw + w * 0.03);
+      ctx.fillStyle = '#e9e2cf';
+      rrect(ctx, x, h * 0.54, bw, h * 0.28, h * 0.05); ctx.fill();
+      centeredText(ctx, String(l), x + bw / 2, h * 0.68, h * 0.2, '#15151a');
+    });
+    for (let i = 0; i < 4; i++) {
+      ctx.fillStyle = i < v.stage ? '#30a46c' : '#333';
+      ctx.beginPath(); ctx.arc(w / 2 + (i - 1.5) * h * 0.1, h * 0.92, h * 0.032, 0, Math.PI * 2); ctx.fill();
+    }
   },
 
   renderBlind(el, v, ctx) {
