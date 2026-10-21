@@ -164,6 +164,16 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .blind-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .blind-nav .pad { min-height: 72px; color: #2c2c36; font-size: 1.6rem; }
 
+/* Blind taunt button + Spectator pane */
+.blind-emotes .emote-btn { background: #0c0c10; border-color: #2a2a36; color: #8a8a99; }
+.hand-pop.taunt { border-color: var(--bad); }
+.hand-pop small { display: block; font-size: .9rem; color: var(--bad); }
+.pane.spectator .spec-banner { background: var(--panel2); border: 1px dashed var(--line); border-radius: 10px; padding: 6px 12px; font-size: .9rem; margin-bottom: 8px; }
+.pane.spectator .spec-mods { display: grid; gap: 8px; margin-top: 8px; }
+.pane.spectator .mod { pointer-events: none; }
+.pane.spectator .seat-slot .stage3d { height: clamp(200px, 44dvh, 420px); }
+.role.spec .ico { filter: none; }
+
 /* overlay */
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.8); display: grid; place-items: center; padding: var(--gutter); z-index: 10; }
 .overlay .card { background: var(--panel); border: 2px solid var(--line); border-radius: 18px; padding: 24px; text-align: center; max-width: 420px; width: 100%; }
@@ -253,6 +263,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   .pane.blind > .seat-slot .stage3d { height: calc(100dvh - 110px); }
   .pane.blind > .blind-stage { grid-column: 2; grid-row: 3; }
   .pane.blind > .blind-nav { grid-column: 3; grid-row: 3; }
+  .pane.blind > .blind-emotes { grid-column: 1 / -1; grid-row: 4; margin: 0; }
   .blind-stage, .blind-stage > * { min-height: 0; }
   .blind-nav { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
   .blind-nav .pad { min-height: 0; }

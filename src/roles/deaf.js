@@ -20,7 +20,7 @@ export function createDeaf(root, ctx) {
     <div class="talk">
       ${ctx.voice ? '<button class="btn" id="d-mic" type="button">🎤 Start voice to Blind</button>' : ''}
       <form id="d-say"><input maxlength="200" placeholder="…or type: spoken aloud on the Blind device" autocomplete="off"><button class="btn">Speak</button></form>
-      <p class="hint" id="d-voice-note"></p>
+      <p class="hint" id="d-voice-note">🔇 You are Deaf: the game never plays voice or sound on this device. Mute Discord output too if you hear anything.</p>
     </div>
     <div id="d-chat"></div></section>`;
 
@@ -106,14 +106,16 @@ export function createDeaf(root, ctx) {
     emote(msg) {
       const e = emoteById(msg.id);
       if (!e) return;
-      scene?.emote(e);
-      hand.innerHTML = `<span class="hand-face">${e.face}</span><b>${e.label}</b>`;
+      const from = msg.from || 'mute';
+      scene?.emote(e, from);
+      hand.classList.toggle('taunt', !!e.taunt);
+      hand.innerHTML = `<span class="hand-face">${e.face}</span><b>${e.label}</b>${e.taunt ? '<small>Blind is taunting you!</small>' : ''}`;
       hand.classList.remove('hidden', 'pop');
       void hand.offsetWidth; // restart the pop animation
       hand.classList.add('pop');
       clearTimeout(handTimer);
       handTimer = setTimeout(() => hand.classList.add('hidden'), 4000);
-      chat.add({ from: 'mute', text: `${e.face} ${e.label}` });
+      chat.add({ from, text: `${e.face} ${e.label}` });
     },
     destroy() {
       clearTimeout(handTimer); cancelAnimationFrame(raf); scene?.destroy(); },

@@ -55,8 +55,10 @@ export function createMute(root, ctx) {
     chat: (msg) => chat.add(msg),
     emote(msg) {
       const e = emoteById(msg.id);
-      if (e) scene?.emote(e);
-      if (e) root.querySelector('#m-echo').textContent = `You showed: ${e.face} ${e.label}`;
+      if (!e) return;
+      const from = msg.from || 'mute';
+      scene?.emote(e, from);
+      root.querySelector('#m-echo').textContent = from === 'mute' ? `You showed: ${e.face} ${e.label}` : `Blind taunts Deaf: ${e.face} ${e.label}`;
     },
     destroy() { cancelAnimationFrame(raf); wheel.destroy(); scene?.destroy(); },
   };

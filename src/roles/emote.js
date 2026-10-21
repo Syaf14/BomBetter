@@ -16,18 +16,31 @@ export const EMOTES = [
   { id: 'higher', label: 'Higher', face: '👍' },
   { id: 'lower', label: 'Lower', face: '👎' },
 ];
-export const EMOTE_IDS = new Set(EMOTES.map((e) => e.id));
-export const emoteById = (id) => EMOTES.find((e) => e.id === id);
+// Blind's taunts aimed at the Deaf player (who can't hear the trash talk, so they have to be shown).
+export const TAUNTS = [
+  { id: 't_lol', label: 'LOL', face: '😂', taunt: true },
+  { id: 't_deaf', label: "Can't hear me", face: '🙉', taunt: true },
+  { id: 't_slow', label: 'Too slow', face: '🥱', taunt: true },
+  { id: 't_tick', label: 'Tick tock', face: '💣', taunt: true },
+  { id: 't_tongue', label: 'Nyah!', face: '😜', taunt: true },
+  { id: 't_clown', label: 'Clown', face: '🤡', taunt: true },
+  { id: 't_wave', label: 'Bye bye', face: '👋', taunt: true },
+  { id: 't_cry', label: 'Cry more', face: '😭', taunt: true },
+];
+export const MUTE_EMOTE_IDS = new Set(EMOTES.map((e) => e.id));
+export const TAUNT_IDS = new Set(TAUNTS.map((e) => e.id));
+export const EMOTE_IDS = new Set([...MUTE_EMOTE_IDS, ...TAUNT_IDS]);
+export const emoteById = (id) => EMOTES.find((e) => e.id === id) || TAUNTS.find((e) => e.id === id);
 
 const RADIUS = 104;
 const SLOT = 56;
 
-export function createEmoteWheel(root, { onPick }) {
+export function createEmoteWheel(root, { onPick, list = EMOTES, button = '✋ Emote' }) {
   root.insertAdjacentHTML('beforeend', `
-    <button type="button" class="emote-btn" aria-label="Open emote wheel">✋ Emote <kbd>X</kbd></button>
+    <button type="button" class="emote-btn" aria-label="Open emote wheel">${button} <kbd>X</kbd></button>
     <div class="emote-wheel hidden" role="menu" aria-label="Emotes">
-      ${EMOTES.map((e, i) => {
-        const a = (i / EMOTES.length) * Math.PI * 2 - Math.PI / 2;
+      ${list.map((e, i) => {
+        const a = (i / list.length) * Math.PI * 2 - Math.PI / 2;
         return `<button type="button" role="menuitem" class="emote-slot" data-i="${i}"
           style="left:${Math.cos(a) * RADIUS}px;top:${Math.sin(a) * RADIUS}px" aria-label="${e.label}">
           <span>${e.face}</span><b>${e.label}</b></button>`;
@@ -49,7 +62,7 @@ export function createEmoteWheel(root, { onPick }) {
   function highlight(i) {
     hot = i;
     slots.forEach((s, k) => s.classList.toggle('hot', k === i));
-    hub.textContent = i >= 0 ? EMOTES[i].label : '…';
+    hub.textContent = i >= 0 ? list[i].label : '…';
   }
 
   function openAt(x, y) {
@@ -71,7 +84,7 @@ export function createEmoteWheel(root, { onPick }) {
 
   function pick(i) {
     if (i < 0) return;
-    onPick(EMOTES[i].id);
+    onPick(list[i].id);
     close();
   }
 
@@ -81,7 +94,7 @@ export function createEmoteWheel(root, { onPick }) {
     const dy = y - cy;
     if (Math.hypot(dx, dy) < 34) return -1;
     const ang = (Math.atan2(dy, dx) + Math.PI / 2 + Math.PI * 2) % (Math.PI * 2);
-    return Math.round((ang / (Math.PI * 2)) * EMOTES.length) % EMOTES.length;
+    return Math.round((ang / (Math.PI * 2)) * list.length) % list.length;
   }
 
   // Desktop: X toggles the wheel at the cursor; move to aim, click to choose.

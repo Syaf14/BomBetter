@@ -17,7 +17,7 @@ const readPref = () => { try { return localStorage.getItem(PREF) !== 'off'; } ca
 const writePref = (on) => { try { localStorage.setItem(PREF, on ? 'on' : 'off'); } catch { /* storage blocked */ } };
 
 /**
- * opts: { seed, mono, seat: 'lobby' | 'deaf' | 'mute' | 'blind', bomb: 'full' | 'blank' | 'none', onSelect(i), onFail() }
+ * opts: { seed, mono, seat: 'lobby' | 'deaf' | 'mute' | 'blind' | 'spectator', bomb: 'full' | 'blank' | 'none', onSelect(i), onFail() }
  * seat 'lobby' (default) is the third-person overview of the room; the others are first-person seats (world.js).
  * mono = black & white (Blind). Returns a handle whose methods are safe to call before the scene is ready.
  */
@@ -132,9 +132,9 @@ export function mountStage(el, opts) {
           bomb?.explode();
         }
       },
-      emote(e) {
-        men.mute.bubble(e.face, e.label);
-        men.mute.pose('raise', 4);
+      emote(e, from = 'mute') {
+        men[from]?.bubble(e.face, e.label);
+        men[from]?.pose(e.taunt ? 'taunt' : 'raise', 4);
       },
       destroy: () => eng.destroy(),
     };
@@ -154,7 +154,7 @@ export function mountStage(el, opts) {
     zoomOut: () => impl?.zoomOut(),
     setPlayers: (p) => call('setPlayers', p),
     react: (ev) => impl?.react(ev),
-    emote: (e) => impl?.emote(e),
+    emote: (e, from) => impl?.emote(e, from),
     destroy() {
       dead = true;
       impl?.destroy();
@@ -218,7 +218,7 @@ export function mountScene(el, opts) {
     zoomOut: () => stage?.zoomOut(),
     setPlayers: remember('setPlayers'),
     react: (ev) => stage?.react(ev),
-    emote: (e) => stage?.emote(e),
+    emote: (e, from) => stage?.emote(e, from),
     destroy() { gen++; stage?.destroy(); stage = null; },
   };
 }

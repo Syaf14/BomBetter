@@ -192,6 +192,7 @@ export function makeStickman(THREE, pal, role) {
     idle: (t) => ({ a: -0.2 + Math.sin(t * 1.6 + phase) * 0.03, b: 0.2 - Math.sin(t * 1.6 + phase) * 0.03, lean: Math.sin(t * 1.2 + phase) * 0.012, hop: 0 }),
     wave: (t) => ({ a: -0.2, b: 2.6 + Math.sin(t * 8) * 0.35, lean: 0, hop: 0 }),
     raise: (t) => ({ a: -0.2, b: 2.95 + Math.sin(t * 5) * 0.06, lean: -0.04, hop: 0 }),
+    taunt: (t) => ({ a: -0.2, b: 1.9 + Math.sin(t * 10) * 0.25, lean: -0.1 + Math.sin(t * 6) * 0.06, hop: Math.abs(Math.sin(t * 6)) * 0.08 }),
     flinch: () => ({ a: -2.2, b: 2.2, lean: -0.3, hop: 0.12 }),
     cheer: (t) => ({ a: -2.7 + Math.sin(t * 9) * 0.3, b: 2.7 - Math.sin(t * 9) * 0.3, lean: 0, hop: Math.abs(Math.sin(t * 5)) * 0.28 }),
     slump: () => ({ a: -0.05, b: 0.05, lean: 0.75, hop: 0 }),

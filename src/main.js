@@ -1,9 +1,10 @@
 import { HostNet, ClientNet, LocalNet } from './net.js';
-import { HostController, ROLES } from './host.js';
+import { HostController, ROLES, SPECTATOR } from './host.js';
 import { createBlind } from './roles/blind.js';
 import { createDeaf } from './roles/deaf.js';
 import { createMute } from './roles/mute.js';
-import { createTalker, answerVoice } from './voice.js';
+import { createSpectator } from './roles/spectator.js';
+import { createTalker, createVoiceIn } from './voice.js';
 import { clock } from './clock.js';
 import { mountScene } from './3d/stage.js';
 import { audio } from './audio.js';
@@ -15,7 +16,9 @@ const ROLE_INFO = {
   blind: { icon: '🙈', title: 'Blind', text: 'Defuse the bomb on a dark screen. You hear the bomb and the Deaf player, but see nothing.' },
   deaf: { icon: '🙉', title: 'Deaf', text: 'See the whole bomb but hear nothing. Talk to the Blind player, text the Mute player.' },
   mute: { icon: '🤐', title: 'Mute', text: 'Read the manual. You cannot speak: text only.' },
+  spectator: { icon: '👁️', title: 'Spectator', text: 'Watch the table and listen to Deaf and Blind. You cannot speak or act.' },
 };
+const voiceIn = createVoiceIn();
 
 const app = { mode: null, net: null, host: null, send: () => {}, lobby: null, panes: {}, role: null };
 
@@ -31,6 +34,7 @@ function onServer(msg) {
   switch (msg.t) {
     case 'lobby':
       app.lobby = msg;
+      app.role = null;
       stopGame();
       $('#overlay').classList.add('hidden');
       show('lobby');
@@ -44,9 +48,9 @@ function onServer(msg) {
       }
       break;
     case 'ev': for (const p of Object.values(app.panes)) p.event?.(msg); break;
-    case 'chat': app.panes.deaf?.chat(msg); app.panes.mute?.chat(msg); break;
-    case 'emote': app.panes.deaf?.emote(msg); app.panes.mute?.emote(msg); break;
-    case 'say': app.panes.blind?.say(msg.text); if (app.role === 'mute') audio.speak(msg.text); break;
+    case 'chat': for (const p of Object.values(app.panes)) p.chat?.(msg); break;
+    case 'emote': for (const p of Object.values(app.panes)) p.emote?.(msg); break;
+    case 'say': app.panes.blind?.say(msg.text); if (app.role === 'mute' || app.role === SPECTATOR) audio.speak(msg.text); break;
     case 'end': showEnd(msg); break;
     case 'error': app.lobby ? ($('#lobby-err').textContent = msg.text) : setError(msg.text); break;
   }
@@ -65,7 +69,7 @@ function renderLobby() {
     <h2>${solo ? 'Solo test' : 'Room'} ${solo ? '' : `<span class="code">${L.code}</span>`}</h2>
     <div class="room" id="lobby-room"></div>
     ${solo ? '' : `<p class="hint">Share this link or code: <a href="${link}">${link}</a></p>`}
-    <p class="hint">Players: ${L.players.map((p) => esc(p.name)).join(', ')} (${L.players.length}/3)</p>
+    <p class="hint">Players: ${L.players.map((p) => esc(p.name)).join(', ')} (${L.players.filter((p) => p.role !== SPECTATOR).length}/3 players, ${L.players.filter((p) => p.role === SPECTATOR).length} spectating)</p>
     <div class="roles">${ROLES.map((r) => {
       const t = taken[r];
       const cls = t ? (t.id === L.you ? 'mine' : 'taken') : '';
@@ -86,6 +90,10 @@ function renderLobby() {
           ${t ? esc(t.name) : 'free'}
         </div></button>`;
     }).join('')}</div>
+    <div class="roles"><button class="role spec ${mine === SPECTATOR ? 'mine' : ''}" data-r="${SPECTATOR}">
+      <span class="ico">${ROLE_INFO.spectator.icon}</span><b>${ROLE_INFO.spectator.title}</b>
+      <small>${ROLE_INFO.spectator.text}</small>
+      <div class="badge mt-2">${L.players.filter((p) => p.role === SPECTATOR).map((p) => esc(p.name)).join(', ') || 'open seats'}</div></button></div>
     ${isHost ? `<div class="settings">
       <label>Modules <select id="set-mod">${[3, 4, 5, 6].map((n) => `<option ${n === 4 ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
       <label>Minutes <select id="set-min">${[2, 3, 5, 7, 10].map((n) => `<option ${n === 5 ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
@@ -128,6 +136,7 @@ function stopGame() {
   $('#panes').innerHTML = '';
   app.talker?.stop();
   app.talker = null;
+  voiceIn.setAllowed(false);
 }
 
 function startGame(msg) {
@@ -138,6 +147,8 @@ function startGame(msg) {
   app.role = msg.role;
   const solo = msg.role === 'solo';
   const roles = solo ? ROLES : [msg.role];
+  const listens = ['blind', 'mute', SPECTATOR].includes(msg.role); // Deaf never gets incoming voice
+  voiceIn.setAllowed(listens);
   const panes = $('#panes');
   panes.className = solo ? 'solo' : 'single';
   clock.set(0, 1, false);
@@ -146,15 +157,16 @@ function startGame(msg) {
   const makers = {
     blind: (el) => {
       let voice = null;
-      if (!solo && msg.roster.mute) { // Deaf cannot hear, so Blind's mic only goes to Mute
-        app.talker = createTalker(app.net.peer, [msg.roster.mute]);
+      const ears = [msg.roster.mute, ...msg.roster.spectators].filter(Boolean); // Deaf cannot hear, so Blind's mic skips them
+      if (!solo && ears.length) {
+        app.talker = createTalker(app.net.peer, ears);
         voice = { toggle: () => app.talker.toggle() };
       }
       return createBlind(el, { ...base, voice });
     },
     deaf: (el) => {
       let voice = null;
-      const listeners = [msg.roster.blind, msg.roster.mute].filter(Boolean);
+      const listeners = [msg.roster.blind, msg.roster.mute, ...msg.roster.spectators].filter(Boolean);
       if (!solo && listeners.length) {
         app.talker = createTalker(app.net.peer, listeners);
         voice = { toggle: () => app.talker.toggle() };
@@ -162,6 +174,7 @@ function startGame(msg) {
       return createDeaf(el, { ...base, voice });
     },
     mute: (el) => createMute(el, { ...base, manual: msg.manual }),
+    [SPECTATOR]: (el) => createSpectator(el, base),
   };
   for (const r of roles) {
     const wrap = document.createElement('div');
@@ -197,7 +210,7 @@ async function hostGame(solo) {
     app.net = net;
     app.mode = 'host';
     app.send = (m) => app.host.onMessage(net.id, m);
-    net.onCall = (call) => (app.role === 'blind' || app.role === 'mute') && answerVoice(call);
+    net.onCall = (call) => voiceIn.incoming(call);
     net.onError = (e) => console.warn('peer error', e);
     app.host = new HostController({ net, name: playerName() || 'Host', deliverLocal: onServer });
   } catch (e) {
@@ -216,7 +229,7 @@ async function joinGame(code) {
     app.mode = 'client';
     app.send = (m) => net.send(m);
     net.onMessage = onServer;
-    net.onCall = (call) => (app.role === 'blind' || app.role === 'mute') && answerVoice(call);
+    net.onCall = (call) => voiceIn.incoming(call);
     net.onClose = () => {
       stopGame();
       show('home');

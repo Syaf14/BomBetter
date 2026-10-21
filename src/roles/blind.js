@@ -3,6 +3,7 @@ import { MODULES } from '../modules/index.js';
 import { audio } from '../audio.js';
 import { clock } from '../clock.js';
 import { mountScene } from '../3d/stage.js';
+import { createEmoteWheel, emoteById, TAUNTS } from './emote.js';
 
 export function createBlind(root, ctx) {
   root.innerHTML = `<section class="pane blind">
@@ -13,7 +14,13 @@ export function createBlind(root, ctx) {
     <nav class="blind-nav">
       <button class="pad" id="b-prev" aria-label="Previous module">◀</button>
       <button class="pad" id="b-next" aria-label="Next module">▶</button>
-    </nav></section>`;
+    </nav>
+    <div class="emote-bar blind-emotes"></div></section>`;
+  // Taunts for the Deaf player, who can't hear you gloat. Everyone at the table sees them.
+  const wheel = createEmoteWheel(root.querySelector('.blind-emotes'), {
+    list: TAUNTS, button: '😜 Taunt',
+    onPick: (id) => ctx.send({ t: 'emote', as: 'blind', id }),
+  });
   const stage = root.querySelector('#b-stage');
   // Black & white 3D room. Built only from what Blind may know: the room seed and which modules are done.
   const scene = ctx.roomSeed ? mountScene(root.querySelector('.b-scene'), { seed: ctx.roomSeed, seat: 'blind', mono: true, bomb: 'blank', fallback: false, onSelect: pick3d }) : null;
@@ -99,6 +106,10 @@ export function createBlind(root, ctx) {
       else if (ev.e === 'win') { audio.stopTone(); audio.win(); }
     },
     say(text) { audio.speak(text); },
-    destroy() { cancelAnimationFrame(raf); audio.stopTone(); scene?.destroy(); },
+    emote(msg) {
+      const e = emoteById(msg.id);
+      if (e) scene?.emote(e, msg.from || 'mute');
+    },
+    destroy() { cancelAnimationFrame(raf); audio.stopTone(); wheel.destroy(); scene?.destroy(); },
   };
 }

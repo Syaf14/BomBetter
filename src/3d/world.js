@@ -1,8 +1,11 @@
 // First-person seat scenes. Each player gets their own scene, built from where they sit, so the bomb always
 // faces them (no mirrored left/right between Deaf and Blind):
-//   deaf  : bomb on the table in colour, Blind across the table, Mute sitting beside them (turn your head)
-//   blind : black & white, grey bomb with touch dots, Deaf across the table
-//   mute  : Deaf across a desk with the manual in front of you; your own hand rises when you emote
+// All three roles share one table. You sit on the near side; the other two sit across from you, left and right
+// of the bomb, so everybody (Blind included) sees everyone else's emotes without turning round.
+//   deaf  : bomb on the table in colour, Mute across-left, Blind across-right
+//   blind : black & white, grey bomb with touch dots, Mute across-left, Deaf across-right
+//   mute  : manual in front of you, Deaf across-left, Blind across-right; your own hand rises when you emote
+//   spectator : bomb in colour, all three seated along the far side
 import { buildRoom } from './room3d.js';
 import { makeStickman, makeBubble } from './stickman.js';
 import { makeBomb, BOMB_CENTER, TABLE_TOP } from './bomb3d.js';
@@ -11,8 +14,14 @@ import { roomLayout } from '../room.js';
 
 const ROLE_NAMES = { deaf: 'DEAF', mute: 'MUTE', blind: 'BLIND' };
 const TABLE = { w: 6.4, d: 3.0, z: 3.5 };
-const ACROSS = { x: 0, z: 1.2 }; // the person facing you, behind the far edge of the table
-const SIDE = { x: -2.6, z: 5.3 }; // Mute, next to Deaf and slightly ahead of them
+const FAR_Z = 1.2; // the far edge of the table, where the other players sit
+// Who sits where, per viewer: [role, x]. Everyone faces the near side (the viewer), turned slightly inwards.
+const SEATS = {
+  deaf: [['mute', -2.2], ['blind', 2.2]],
+  blind: [['mute', -2.2], ['deaf', 2.2]],
+  mute: [['deaf', -2.2], ['blind', 2.2]],
+  spectator: [['mute', -3.0], ['blind', 0], ['deaf', 3.0]],
+};
 
 export function addLights(THREE, scene) {
   scene.add(new THREE.AmbientLight(0xffffff, 1.5));
@@ -99,23 +108,21 @@ export function buildSeatWorld(THREE, eng, pal, opts) {
   let target;
   let camY;
   let fitHalfW;
+  for (const [role, x] of SEATS[seat] ?? SEATS.spectator) sitter(role, x, FAR_Z, -Math.sign(x) * 0.25);
   if (seat === 'mute') {
-    sitter('deaf', ACROSS.x, ACROSS.z, 0);
     const book = makeBook(THREE, pal);
     book.position.set(0, TABLE_TOP + 0.05, TABLE.z + 0.9);
     scene.add(book);
     target = new THREE.Vector3(0, 1.5, 2.6);
     camY = 2.7;
-    fitHalfW = 2.2;
+    fitHalfW = 3.0;
   } else {
-    sitter(seat === 'deaf' ? 'blind' : 'deaf', ACROSS.x, ACROSS.z, 0);
-    if (seat === 'deaf') sitter('mute', SIDE.x, SIDE.z, Math.atan2(-SIDE.x, 6.4 - SIDE.z));
     bomb = makeBomb(THREE, pal, { mode: bombMode });
     scene.add(bomb.group);
-    // look slightly past the case so the person across the table stays in frame above it
+    // look slightly past the case so the people across the table stay in frame above it
     target = new THREE.Vector3(BOMB_CENTER.x, BOMB_CENTER.y + 0.35, BOMB_CENTER.z - 0.6);
     camY = 3.5;
-    fitHalfW = 3.3;
+    fitHalfW = seat === 'spectator' ? 4.2 : 3.3;
   }
 
   const look = createLook(THREE, eng, {
@@ -129,6 +136,11 @@ export function buildSeatWorld(THREE, eng, pal, opts) {
   let arm = null;
   let ownBubble = null;
   let armLeft = 0;
+  if (seat === 'blind') { // Blind's own taunts show in front of the camera too
+    ownBubble = makeBubble(THREE, 1.0);
+    ownBubble.sprite.position.set(-0.55, 0.45, -2.0);
+    camera.add(ownBubble.sprite);
+  }
   if (seat === 'mute') {
     arm = new THREE.Group();
     const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 1.6, 10), pal.basic('#111111'));
@@ -153,8 +165,8 @@ export function buildSeatWorld(THREE, eng, pal, opts) {
       const goal = armLeft > 0 ? -1.15 : -2.6;
       arm.position.y += (goal - arm.position.y) * (1 - Math.exp(-dt * 10));
       arm.rotation.z = -0.15 + (armLeft > 0 ? Math.sin(t * 9) * 0.04 : 0);
-      ownBubble.update(dt);
     }
+    ownBubble?.update(dt);
   });
 
   return {
@@ -172,6 +184,7 @@ export function buildSeatWorld(THREE, eng, pal, opts) {
         bomb?.shake();
         look.shake(0.1, 0.45);
       } else if (ev === 'solved') {
+        // Blind cheers; when you are the Blind player, everyone else at the table cheers for you
         for (const m of Object.values(men)) if (m.role === 'blind' || seat === 'blind') m.pose('cheer', 1.3);
       } else if (ev === 'win') {
         for (const m of Object.values(men)) m.pose('cheer');
@@ -183,10 +196,15 @@ export function buildSeatWorld(THREE, eng, pal, opts) {
         look.shake(0.3, 0.9);
       }
     },
-    emote(e) {
-      men.mute?.bubble(e.face, e.label);
-      men.mute?.pose('raise', 4);
-      if (arm) { armLeft = 4; ownBubble.show(e.face, e.label); }
+    /** from: the role that emoted ('mute' hand signals, 'blind' taunts) */
+    emote(e, from = 'mute') {
+      const m = men[from];
+      m?.bubble(e.face, e.label);
+      m?.pose(e.taunt ? 'taunt' : 'raise', 4);
+      if (from === seat && ownBubble) {
+        ownBubble.show(e.face, e.label);
+        if (arm) armLeft = 4;
+      }
     },
   };
 }
